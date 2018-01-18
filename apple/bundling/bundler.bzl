@@ -946,7 +946,6 @@ def _run(
       objc_provider_args["dynamic_framework_dir"] = depset([framework_dir])
       objc_provider_args["dynamic_framework_file"] = bundled_framework_files
     else:
-      objc_provider_args["framework_dir"] = depset([framework_dir])
       objc_provider_args["static_framework_file"] = bundled_framework_files
 
   objc_provider_args["providers"] = deps_objc_providers

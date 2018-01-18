@@ -21,10 +21,9 @@ load("@build_bazel_rules_apple//apple/bundling:binary_support.bzl",
 # xctest_app provider's objc provider. This list needs to stay in sync with
 # bazel's ReleaseBundlingSupport.java#xcTestAppProvider method.
 _WHITELISTED_TEST_OBJC_PROVIDER_FIELDS = [
-    "define", "dynamic_framework_file", "framework_dir",
-    "dynamic_framework_dir", "framework_search_paths", "header", "include",
-    "iquote", "sdk_dylib", "sdk_framework", "source", "static_framework_file",
-    "weak_sdk_framework"]
+    "define", "dynamic_framework_file", "dynamic_framework_dir",
+    "framework_search_paths", "header", "include", "iquote", "sdk_dylib",
+    "sdk_framework", "source", "static_framework_file", "weak_sdk_framework"]
 
 
 # TODO(b/36513269): Remove xctest_app_provider once everyone has migrated out
@@ -70,7 +69,7 @@ def _new_xctest_app_provider(ctx):
       # In order to prevent double linking of frameworks in tests, we need to
       # move the framework_dir paths into just search paths in order for tests
       # to compile against the headers.
-      if field == "framework_dir" or field == "dynamic_framework_dir":
+      if field == "dynamic_framework_dir":
         destination_field = "framework_search_paths"
 
       # Merge current values with the values from the binary's objc provider.
