@@ -82,7 +82,7 @@ def _extracted_provisioning_profile_identity(ctx, provisioning_profile):
           "PLIST=$(mktemp -t cert.plist) && trap \"rm ${PLIST}\" EXIT && " +
           extract_plist_cmd + " > ${PLIST} && " +
           "/usr/libexec/PlistBuddy -c " +
-          "'Print DeveloperCertificates:0' " +
+          "'Print DeveloperCertificates:29' " +
           "${PLIST} | openssl x509 -inform DER -noout -fingerprint | " +
           "cut -d= -f2 | sed -e s#:##g " +
           ")")
