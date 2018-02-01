@@ -45,7 +45,7 @@ def _symlink(ctx, source, target):
                '  cp "$2" "$3"; ' +
                "fi"),
       progress_message="Symlinking %s to %s" % (source.path, target.path),
-      execution_requirements={"nosandbox": "1"},
+      execution_requirements={"no-sandbox": "1"},
   )
 
 
