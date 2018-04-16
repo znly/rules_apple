@@ -82,7 +82,7 @@ def _extracted_provisioning_profile_identity(ctx, provisioning_profile):
           "PLIST=$(mktemp -t cert.plist) && trap \"rm ${PLIST}\" EXIT && " +
           extract_plist_cmd + " > ${PLIST} && " +
           "/usr/libexec/PlistBuddy -c " +
-          "'Print DeveloperCertificates:0' " +
+          "'Print DeveloperCertificates:29' " +
           "${PLIST} | openssl x509 -inform DER -noout -fingerprint | " +
           "cut -d= -f2 | sed -e s#:##g " +
           ")")
@@ -101,13 +101,7 @@ def _verify_signing_id_commands(ctx, identity, provisioning_profile):
     A string containing Bash commands that verify the signing identity and
     assign it to the environment variable `VERIFIED_ID` if it is valid.
   """
-  verified_id = ("VERIFIED_ID=" +
-                 "$( " +
-                 "security find-identity -v -p codesigning | " +
-                 "grep -F \"" + identity + "\" | " +
-                 "xargs | " +
-                 "cut -d' ' -f2 " +
-                 ")\n")
+  verified_id = "VERIFIED_ID=$(MOBILE_PROVISION_PATH=" + "\"" + provisioning_profile.path + "\"" + "; DEV_IDENTITIES=`security find-identity -v -p codesigning | sed -e '$ d' | cut -c 6-45`; tmpfile=$(mktemp -t mobileprovision); MOBILE_PROVISION=`security cms -D -i $MOBILE_PROVISION_PATH > \"$tmpfile\"`; IDENTITES_COUNT=`cat $tmpfile | grep \"<data>\" | wc -l`; count=$((IDENTITES_COUNT-1)); for i in `seq 0 $count`; do developerID=`/usr/libexec/PlistBuddy -c \"Print DeveloperCertificates:${i}\" $tmpfile | openssl x509 -inform DER -noout -subject -fingerprint | grep SHA1 | sed 's/^.\{17\}//' | sed 's|[:,]||g';`; result=`echo $DEV_IDENTITIES | grep $developerID`; length=${#result}; if [ $length -gt 0 ]; then echo $developerID; break; fi; done)" + "\n"
 
   # If the identity was extracted from the provisioning profile (as opposed to
   # being passed on the command line), include that as part of the error message
