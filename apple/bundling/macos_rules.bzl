@@ -235,7 +235,7 @@ def _macos_command_line_application_impl(ctx):
         None,
     )
 
-    inputs = [ctx.file.binary]
+    inputs = [ctx.file.binary, ctx.executable._codesigningtool]
 
     platform_support.xcode_env_action(
         ctx,
@@ -334,7 +334,7 @@ def _macos_dylib_impl(ctx):
         None,
     )
 
-    inputs = [ctx.file.binary]
+    inputs = [ctx.file.binary, ctx.executable._codesigningtool]
 
     platform_support.xcode_env_action(
         ctx,
