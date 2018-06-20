@@ -17,46 +17,42 @@
 # Standard execution requirements to force building on Mac.
 DARWIN_EXECUTION_REQUIREMENTS = {"requires-darwin": ""}
 
+_EXECUTION_REQUIREMENTS = {
+    "no_cache": "no-cache",
+}
+
+def _args_with_execution_requirements(kw):
+    """Adds and returns the execution requirements for an action."""
+    kw = dict(kw)
+    execution_requirements = kw.get("execution_requirements", {})
+    execution_requirements["requires-darwin"] = ""
+    for arg, tag in _EXECUTION_REQUIREMENTS.items():
+        if arg in kw and kw.pop(arg, False):
+            execution_requirements[tag] = "1"
+    kw["execution_requirements"] = execution_requirements
+    return kw
+
 def apple_action(ctx, **kw):
     """Creates an action that only runs on MacOS/Darwin.
 
     Call it similar to how you would call ctx.action:
-      apple_action(ctx, outputs=[...], inputs=[...],...)
+        apple_action(ctx, outputs=[...], inputs=[...],...)
     """
-    execution_requirements = kw.get("execution_requirements", {})
-    execution_requirements["requires-darwin"] = ""
-
-    no_sandbox = kw.pop("no_sandbox", False)
-    if no_sandbox:
-        execution_requirements["no-sandbox"] = "1"
-
-    kw["execution_requirements"] = execution_requirements
 
     # Disable the lint warning because this can't be remapped, it needs
     # to be split into run and run_shell, which is pending work.
     # ...and disabling the linter doesn't work:
     # github.com/bazelbuild/buildtools/issues/458
-    ctx.action(**kw)  # buildozer: disable=ctx-actions
+    ctx.action(**_args_with_execution_requirements(kw))  # buildozer: disable=ctx-actions
 
 def apple_actions_run(ctx_actions, **kw):
     """Creates an actions.run() that only runs on MacOS/Darwin.
 
-    Call it similar to how you would call ctx.actions.run:
-      apple_actions_run(ctx.actions, outputs=[...], inputs=[...],...)
-
     Args:
-      ctx_actions: The ctx.actions object to use.
-      **kw: Additional arguments that are passed directly to `actions.run`.
+        ctx_actions: The ctx.actions object to use.
+        **kw: Additional arguments that are passed directly to `actions.run`.
     """
-    execution_requirements = kw.get("execution_requirements", {})
-    execution_requirements["requires-darwin"] = ""
-
-    no_sandbox = kw.pop("no_sandbox", False)
-    if no_sandbox:
-        execution_requirements["no-sandbox"] = "1"
-
-    kw["execution_requirements"] = execution_requirements
-    ctx_actions.run(**kw)
+    ctx_actions.run(**_args_with_execution_requirements(kw))
 
 def apple_actions_runshell(ctx_actions, **kw):
     """Creates an actions.run_shell() that only runs on MacOS/Darwin.
@@ -65,19 +61,11 @@ def apple_actions_runshell(ctx_actions, **kw):
       apple_actions_runshell(ctx.actions, outputs=[...], inputs=[...],...)
 
     Args:
-      ctx_actions: The ctx.actions object to use.
-      **kw: Additional arguments that are passed directly to
+        ctx_actions: The ctx.actions object to use.
+        **kw: Additional arguments that are passed directly to
         `actions.run_shell`.
     """
-    execution_requirements = kw.get("execution_requirements", {})
-    execution_requirements["requires-darwin"] = ""
-
-    no_sandbox = kw.pop("no_sandbox", False)
-    if no_sandbox:
-        execution_requirements["no-sandbox"] = "1"
-
-    kw["execution_requirements"] = execution_requirements
-    ctx_actions.run_shell(**kw)
+    ctx_actions.run_shell(**_args_with_execution_requirements(kw))
 
 def full_label(l):
     """Converts a label to full format, e.g. //a/b/c -> //a/b/c:c.
