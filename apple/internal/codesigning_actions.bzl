@@ -135,6 +135,8 @@ def _post_process_and_sign_archive_action(
         executable = process_and_sign_template,
         mnemonic = "ProcessAndSign",
         progress_message = "Processing and signing %s" % ctx.label.name,
+        no_sandbox = True,
+        no_cache = True,
         tools = [
             ctx.executable._codesigningtool,
         ],
