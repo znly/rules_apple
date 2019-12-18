@@ -238,9 +238,6 @@ def _common_binary_linking_attrs(rule_descriptor):
     if _is_test_product_type(rule_descriptor.product_type):
         deps_aspects.append(apple_test_info_aspect)
 
-    if rule_descriptor.product_type == apple_product_type.static_framework:
-        deps_aspects.append(swift_static_framework_aspect)
-
     return {
         "binary_type": attr.string(
             default = rule_descriptor.binary_type,
