@@ -299,8 +299,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.static_framework: _describe_rule_type(
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".framework",
-            deps_cfg = transition_support.static_framework_transition,
-            force_transition_whitelist = True,
+            deps_cfg = apple_common.multi_arch_split,
             has_infoplist = False,
             product_type = apple_product_type.static_framework,
             requires_bundle_id = False,
