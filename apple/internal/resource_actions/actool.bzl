@@ -31,6 +31,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
     "@build_bazel_rules_apple//apple:utils.bzl",
     "group_files_by_directory",
 )
@@ -147,6 +151,24 @@ def _actool_args_for_special_file_types(
 
     return args
 
+def _alticonstool_args(
+    *,
+    alticons_files,
+    input_plist,
+    output_plist):
+    alticons_dirs = group_files_by_directory(
+        alticons_files,
+        ["alticon"],
+        attr = "alticonss",
+    ).keys()
+    args = [
+        "--input", input_plist.path,
+        "--output", output_plist.path,
+    ]
+    for alticon in alticons_dirs:
+        args += ["--alticon", alticon]
+    return args
+
 def compile_asset_catalog(
         *,
         actions,
@@ -156,6 +178,7 @@ def compile_asset_catalog(
         output_plist,
         platform_prerequisites,
         product_type,
+        alticonstool_executable,
         xctoolrunner_executable):
     """Creates an action that compiles asset catalogs.
 
@@ -177,6 +200,7 @@ def compile_asset_catalog(
         into Info.plist. May be None if the output plist is not desired.
       platform_prerequisites: Struct containing information on the platform being targeted.
       product_type: The product type identifier used to describe the current bundle type.
+      alticonstool_executable: A reference to the alticonstool executable.
       xctoolrunner_executable: A reference to the executable wrapper for "xcrun" tools.
     """
     platform = platform_prerequisites.platform
@@ -193,6 +217,15 @@ def compile_asset_catalog(
         "--compress-pngs",
     ]
 
+    alticons_files = []
+    asset_files_without_alticons = []
+    for f in asset_files:
+        if ".alticon/" in f.path:
+            alticons_files.append(f)
+        else:
+            asset_files_without_alticons.append(f)
+    asset_files = asset_files_without_alticons
+
     if xcode_support.is_xcode_at_least_version(platform_prerequisites.xcode_version_config, "8"):
         if product_type:
             args.extend(["--product-type", product_type])
@@ -208,12 +241,21 @@ def compile_asset_catalog(
         platform_prerequisites.device_families,
     ))
 
-    outputs = [output_dir]
+    alticons_outputs = []
+    actool_output_plist = None
+    actool_outputs = [output_dir]
     if output_plist:
-        outputs.append(output_plist)
+        if alticons_files:
+            alticons_outputs = [output_plist]
+            actool_output_plist = actions.declare_file("{}.noalticon.plist".format(output_plist.basename), sibling = output_plist)
+            actool_outputs.append(actool_output_plist)
+        else:
+            actool_output_plist = output_plist
+
+        actool_outputs.append(actool_output_plist)
         args.extend([
             "--output-partial-info-plist",
-            xctoolrunner.prefixed_path(output_plist.path),
+            xctoolrunner.prefixed_path(actool_output_plist.path),
         ])
 
     xcassets = group_files_by_directory(
@@ -224,6 +266,8 @@ def compile_asset_catalog(
 
     args.extend([xctoolrunner.prefixed_path(xcasset) for xcasset in xcassets])
 
+    print(actool_outputs)
+
     legacy_actions.run(
         actions = actions,
         arguments = args,
@@ -231,6 +275,21 @@ def compile_asset_catalog(
         execution_requirements = {"no-sandbox": "1"},
         inputs = asset_files,
         mnemonic = "AssetCatalogCompile",
-        outputs = outputs,
+        outputs = actool_outputs,
         platform_prerequisites = platform_prerequisites,
     )
+
+    if alticons_files:
+        legacy_actions.run(
+            actions = actions,
+            arguments = _alticonstool_args(
+                input_plist = actool_output_plist,
+                output_plist = output_plist,
+                alticons_files = alticons_files,
+            ),
+            executable = alticonstool_executable,
+            inputs = [actool_output_plist] + alticons_files,
+            mnemonic = "AlternateIconsInsert",
+            outputs = alticons_outputs,
+            platform_prerequisites = platform_prerequisites,
+        )

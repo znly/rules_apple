@@ -161,6 +161,11 @@ _COMMON_BINARY_RULE_ATTRS = dicts.add(
 # dependencies.
 _COMMON_PRIVATE_TOOL_ATTRS = dicts.add(
     {
+        "_alticonstool": attr.label(
+            cfg = "host",
+            executable = True,
+            default = Label("@build_bazel_rules_apple//tools/alticonstool"),
+        ),
         "_bundletool": attr.label(
             cfg = "host",
             executable = True,

@@ -172,6 +172,7 @@ def _asset_catalogs(
         output_plist = assets_plist,
         platform_prerequisites = platform_prerequisites,
         product_type = product_type,
+        alticonstool_executable = executables._alticonstool,
         xctoolrunner_executable = executables._xctoolrunner,
     )
 

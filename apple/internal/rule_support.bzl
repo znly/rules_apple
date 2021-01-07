@@ -184,6 +184,7 @@ def _describe_rule_type(
         deps_cfg = deps_cfg,
         expose_non_archive_relative_output = expose_non_archive_relative_output,
         extra_linkopts = extra_linkopts,
+        has_alternate_icons = has_alternate_icons,
         has_infoplist = has_infoplist,
         has_launch_images = has_launch_images,
         has_settings_bundle = has_settings_bundle,
