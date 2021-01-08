@@ -159,7 +159,7 @@ def _alticonstool_args(
     alticons_dirs = group_files_by_directory(
         alticons_files,
         ["alticon"],
-        attr = "alticonss",
+        attr = "alternate_icons",
     ).keys()
     args = [
         "--input", input_plist.path,
@@ -172,6 +172,7 @@ def _alticonstool_args(
 def compile_asset_catalog(
         *,
         actions,
+        alternate_icons,
         asset_files,
         bundle_id,
         output_dir,
@@ -217,15 +218,6 @@ def compile_asset_catalog(
         "--compress-pngs",
     ]
 
-    alticons_files = []
-    asset_files_without_alticons = []
-    for f in asset_files:
-        if ".alticon/" in f.path:
-            alticons_files.append(f)
-        else:
-            asset_files_without_alticons.append(f)
-    asset_files = asset_files_without_alticons
-
     if xcode_support.is_xcode_at_least_version(platform_prerequisites.xcode_version_config, "8"):
         if product_type:
             args.extend(["--product-type", product_type])
@@ -245,7 +237,7 @@ def compile_asset_catalog(
     actool_output_plist = None
     actool_outputs = [output_dir]
     if output_plist:
-        if alticons_files:
+        if alternate_icons:
             alticons_outputs = [output_plist]
             actool_output_plist = actions.declare_file("{}.noalticon.plist".format(output_plist.basename), sibling = output_plist)
             actool_outputs.append(actool_output_plist)
@@ -266,8 +258,6 @@ def compile_asset_catalog(
 
     args.extend([xctoolrunner.prefixed_path(xcasset) for xcasset in xcassets])
 
-    print(actool_outputs)
-
     legacy_actions.run(
         actions = actions,
         arguments = args,
@@ -279,16 +269,16 @@ def compile_asset_catalog(
         platform_prerequisites = platform_prerequisites,
     )
 
-    if alticons_files:
+    if alternate_icons:
         legacy_actions.run(
             actions = actions,
             arguments = _alticonstool_args(
                 input_plist = actool_output_plist,
                 output_plist = output_plist,
-                alticons_files = alticons_files,
+                alticons_files = alternate_icons,
             ),
             executable = alticonstool_executable,
-            inputs = [actool_output_plist] + alticons_files,
+            inputs = [actool_output_plist] + alternate_icons,
             mnemonic = "AlternateIconsInsert",
             outputs = alticons_outputs,
             platform_prerequisites = platform_prerequisites,

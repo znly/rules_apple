@@ -45,12 +45,8 @@ def insert_alticons(plist_data, alticons):
   alticons_data = {}
   for alticon in alticons:
     alticon_id, _ = os.path.splitext(os.path.basename(alticon))
-    alticon_files = list({
-      iconname_from_filename(f): None
-      for f in os.listdir(alticon)
-    }.keys())
     alticons_data[alticon_id] = {
-      "CFBundleIconFiles": alticon_files,
+      "CFBundleIconFiles": sorted(set(map(iconname_from_filename, os.listdir(alticon)))),
     }
   plist_data["CFBundleIcons"]["CFBundleAlternateIcons"] = alticons_data
   plist_data["CFBundleIcons~ipad"]["CFBundleAlternateIcons"] = alticons_data
@@ -70,5 +66,5 @@ def main(argv):
   return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   sys.exit(main(sys.argv))
